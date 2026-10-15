@@ -23,5 +23,6 @@ central.sonatype.com. `MAVEN_GPG_PRIVATE_KEY` is the armored private key from
 The public key must be on keyserver.ubuntu.com, and the `com.ternwire` namespace must be
 verified on central.sonatype.com.
 
-The upload does not go live by itself. Open Deployments on central.sonatype.com and
-publish it there.
+Central publishes the upload as soon as it passes validation, and a bundle that fails
+validation is never published. A new version can take up to an hour to show up on
+Maven Central search after that.
