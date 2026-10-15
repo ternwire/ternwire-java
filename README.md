@@ -11,11 +11,11 @@ With Maven:
 <dependency>
   <groupId>com.ternwire</groupId>
   <artifactId>ternwire</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
-With Gradle, add `implementation("com.ternwire:ternwire:0.1.0")`.
+With Gradle, add `implementation("com.ternwire:ternwire:0.2.0")`.
 
 ## Usage
 
