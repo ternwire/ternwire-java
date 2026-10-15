@@ -17,16 +17,62 @@ import java.util.Locale;
 import java.util.Objects;
 
 public final class TernwireClient {
+    /** The production API origin, used when no origin is passed to the constructor. */
+    public static final String DEFAULT_BASE_URL = "https://ternwire.com";
+
+    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(30);
+
     private final String apiKey;
     private final String baseUrl;
     private final Duration timeout;
     private final HttpClient http;
 
-    public TernwireClient(String apiKey, String baseUrl) {
-        this(apiKey, baseUrl, Duration.ofSeconds(30));
+    /**
+     * Creates a client for the production API at {@link #DEFAULT_BASE_URL} with a 30 second timeout.
+     *
+     * @param apiKey an {@code em_live_} or {@code em_test_} API key
+     */
+    public TernwireClient(String apiKey) {
+        this(apiKey, DEFAULT_TIMEOUT);
     }
 
+    /**
+     * Creates a client for the production API at {@link #DEFAULT_BASE_URL}.
+     *
+     * @param apiKey an {@code em_live_} or {@code em_test_} API key
+     * @param timeout the connect and per-request timeout, which must be positive
+     */
+    public TernwireClient(String apiKey, Duration timeout) {
+        this(apiKey, timeout, null);
+    }
+
+    // Tests pass a fake transport here, so the default origin is covered without a public HttpClient overload.
+    TernwireClient(String apiKey, Duration timeout, HttpClient transport) {
+        this(apiKey, DEFAULT_BASE_URL, timeout, transport);
+    }
+
+    /**
+     * Creates a client for the API at {@code baseUrl} with a 30 second timeout.
+     *
+     * @param apiKey an {@code em_live_} or {@code em_test_} API key
+     * @param baseUrl an origin such as {@code http://localhost:3001}, without {@code /v1}
+     */
+    public TernwireClient(String apiKey, String baseUrl) {
+        this(apiKey, baseUrl, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Creates a client for the API at {@code baseUrl}.
+     *
+     * @param apiKey an {@code em_live_} or {@code em_test_} API key
+     * @param baseUrl an origin such as {@code http://localhost:3001}, without {@code /v1}
+     * @param timeout the connect and per-request timeout, which must be positive
+     */
     public TernwireClient(String apiKey, String baseUrl, Duration timeout) {
+        this(apiKey, baseUrl, timeout, null);
+    }
+
+    TernwireClient(String apiKey, String baseUrl, Duration timeout, HttpClient transport) {
         if (apiKey == null || !apiKey.matches("em_(live|test)_[A-Za-z0-9_-]+")) {
             throw new IllegalArgumentException("Use an em_live_ or em_test_ API key");
         }
@@ -48,13 +94,17 @@ public final class TernwireClient {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl.replaceAll("/+$", "");
         this.timeout = timeout;
+        this.http = transport != null ? transport : defaultHttp(timeout, loopback);
+    }
+
+    private static HttpClient defaultHttp(Duration timeout, boolean loopback) {
         HttpClient.Builder builder = HttpClient.newBuilder().connectTimeout(timeout)
                 .followRedirects(HttpClient.Redirect.NEVER);
         if (loopback) {
             // A proxy cannot reach this machine's loopback, and would receive the API key.
             builder.proxy(HttpClient.Builder.NO_PROXY);
         }
-        this.http = builder.build();
+        return builder.build();
     }
 
     private static boolean isLoopbackHost(String host) {

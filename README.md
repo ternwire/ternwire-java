@@ -23,8 +23,7 @@ With Gradle, add `implementation("com.ternwire:ternwire:0.1.0")`.
 import com.google.gson.JsonParser;
 import com.ternwire.TernwireClient;
 
-var client = new TernwireClient(
-    System.getenv("TERNWIRE_API_KEY"), System.getenv("TERNWIRE_API_ORIGIN"));
+var client = new TernwireClient(System.getenv("TERNWIRE_API_KEY"));
 var input = JsonParser.parseString("""
     {"from":"notifications@your-verified-domain.com","to":["recipient@example.com"],
      "subject":"Your receipt","text":"Thanks for your order."}
@@ -40,7 +39,13 @@ propagate, or restore the thread's interrupted flag when handling them.
 `listEmailTemplates(String cursor, Integer limit)` returns one page of summaries,
 and either argument may be `null`; `listEmailTemplates()` fetches the first page.
 Pass the previous `page.nextCursor` as `cursor` to fetch the next page.
-The optional third constructor argument is a `Duration`, default 30 seconds.
+
+The client calls the production API at `TernwireClient.DEFAULT_BASE_URL`
+(`https://ternwire.com`). To point it at a local or staging server, pass an origin
+as the second argument, for example
+`new TernwireClient(apiKey, "http://localhost:3001")`. The origin must use https
+unless it is a loopback address, and must not include `/v1`. To change the default
+30 second timeout, pass a `Duration` after the key or after the origin.
 
 `TernwireApiException` exposes `status()`, `body()`, `rawBody()`, and `headers()`.
 The response headers include any `Retry-After` value.
@@ -51,9 +56,10 @@ Verify webhooks with
 default 300. The body must be the exact received bytes.
 
 `examples/Send.java` is a complete main class; run it with this package and Gson
-on the classpath after setting `TERNWIRE_API_KEY`, `TERNWIRE_API_ORIGIN`,
-`TERNWIRE_FROM`, and `TERNWIRE_TO`. It submits an email.
+on the classpath after setting `TERNWIRE_API_KEY`, `TERNWIRE_FROM`, and
+`TERNWIRE_TO`. It submits an email. Set `TERNWIRE_API_ORIGIN` only to send it to
+a local or staging server.
 
-Use `https://ternwire.com` as the API origin. Read the full documentation at
+Read the full documentation at
 [ternwire.com/docs](https://ternwire.com/docs), or contact support@ternwire.com.
 Released under the MIT License.
