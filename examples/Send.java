@@ -4,7 +4,9 @@ import com.ternwire.TernwireClient;
 
 public class Send {
     public static void main(String[] args) throws Exception {
-        var client = new TernwireClient(System.getenv("TERNWIRE_API_KEY"), System.getenv("TERNWIRE_API_ORIGIN"));
+        var apiKey = System.getenv("TERNWIRE_API_KEY");
+        var origin = System.getenv("TERNWIRE_API_ORIGIN");
+        var client = origin == null ? new TernwireClient(apiKey) : new TernwireClient(apiKey, origin);
         var input = new JsonObject();
         input.addProperty("from", System.getenv("TERNWIRE_FROM"));
         var recipients = new JsonArray();
